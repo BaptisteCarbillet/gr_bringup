@@ -57,6 +57,7 @@ def generate_launch_description():
         'worlds',
         'test_swapbody.sdf'
     ])
+    
     # Gazebo Sim
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -130,6 +131,15 @@ def generate_launch_description():
     ld.add_action(invert_imu_gravity_node)
 
 
+    ### Invert IMU gravity, to match the real robot s IMU
+
+    invert_imu_gravity_node = Node(
+        package='slam_bringup',
+        executable='invert_imu_gravity',
+        name='invert_imu_gravity',
+        output='screen',
+    )
+    ld.add_action(invert_imu_gravity_node)
 
     '''
     port_name_launch_arg = DeclareLaunchArgument(
