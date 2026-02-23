@@ -55,14 +55,15 @@ def generate_launch_description():
     world = PathJoinSubstitution([
         FindPackageShare('aws_robomaker_small_warehouse_world'),
         'worlds',
-        'no_roof_small_warehouse.sdf'
+        'test_swapbody.sdf'
     ])
     # Gazebo Sim
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': world}.items(),
+        #launch_arguments={'gz_args': world}.items(),
+        launch_arguments={'gz_args': ['-r ', world]}.items(),
         #launch_arguments={'gz_args': '-r empty.sdf'}.items(),
     )
 
@@ -72,10 +73,10 @@ def generate_launch_description():
         arguments=[
             '-name', 'scout_mini',
             '-topic', 'robot_description',
-            '-x', '0',
-            '-y', '0',
+            '-x', '-4.66',
+            '-y', '9.33',
             '-z', '0.3',
-            '-v', '4',
+            '-v', ' 4',
         ],
         output='screen',
     )
@@ -93,22 +94,41 @@ def generate_launch_description():
     ## TF republisher : change frame X into Y : used because the realsense gazebo plugin is for the old gazebo,
     # and natively the frame in ignition is $name/base_link/cameradepth, but in ROS2 we want it to be camera_depth_optical_frame, so we republish a static transform between these two frames 
 
-    tf_republisher = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        arguments=[
-            "0",
-            "0",
-            "0",
-            "1.5708",
-            "-1.5708",
-            "0",
-            "camera_depth_optical_frame",
-            "scout_mini/base_link/cameradepth",
-        ],
-        output="screen",
+    #tf_republisher = Node(
+    #    package="tf2_ros",
+    #    executable="static_transform_publisher",
+    #    arguments=[
+    #        "0",
+    #        "0",
+    #        "0",
+    #        "1.5708",
+    #        "-1.5708",
+    #        "0",
+    #        "camera_depth_optical_frame",
+    #        "scout_mini/base_link/cameradepth",
+    #    ],
+    #    output="screen",
+    #)
+    #ld.add_action(tf_republisher)
+
+    change_d435_cloud_frame_node = Node(
+        package='slam_bringup',
+        executable='change_d435_cloud_frame',
+        name='change_d435_cloud_frame',
+        output='screen',
     )
-    ld.add_action(tf_republisher)
+    ld.add_action(change_d435_cloud_frame_node)
+
+     ### Invert IMU gravity, to match the real robot s IMU
+
+    invert_imu_gravity_node = Node(
+        package='slam_bringup',
+        executable='invert_imu_gravity',
+        name='invert_imu_gravity',
+        output='screen',
+    )
+    ld.add_action(invert_imu_gravity_node)
+
 
 
     '''
